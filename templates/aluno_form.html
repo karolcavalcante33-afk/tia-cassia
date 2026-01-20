@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="container mt-4">
+    <h2 class="mb-4">{% if form.instance.pk %}📝 Editar{% else %}➕ Novo{% endif %} Aluno</h2>
+    
+    <form method="post" id="formAluno" class="card p-4 shadow-sm border-0">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Erro ao salvar:</strong> Verifique os campos abaixo.
+                {{ form.errors }}
+            </div>
+        {% endif %}
+
+        <div class="mb-3">{{ form.nome.label_tag }}{{ form.nome }}</div>
+        <div class="mb-3">{{ form.responsavel.label_tag }}{{ form.responsavel }}</div>
+        <div class="mb-3">{{ form.telefone.label_tag }}{{ form.telefone }}</div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">{{ form.data_nascimento.label_tag }}{{ form.data_nascimento }}</div>
+            <div class="col-md-3 mb-3">{{ form.valor_mensalidade.label_tag }}{{ form.valor_mensalidade }}</div>
+            <div class="col-md-3 mb-3">{{ form.dia_vencimento.label_tag }}{{ form.dia_vencimento }}</div>
+        </div>
+
+        <div class="form-check mb-3">
+            {{ form.atipico }}
+            {{ form.atipico.label_tag }}
+        </div>
+
+        <div id="campos-atipico" style="display: none; border: 1px dashed #ccc; padding: 15px; margin-bottom: 15px;">
+            <div class="mb-3">
+                <label class="form-label">Condição:</label>
+                {{ form.tipo_atipico }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Observações:</label>
+                {{ form.observacoes }}
+            </div>
+        </div>
+
+        <div class="form-check mb-3">{{ form.ativo }}{{ form.ativo.label_tag }}</div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">💾 Salvar</button>
+            <a href="{% url 'relatorio_financeiro' %}" class="btn btn-secondary">Voltar</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+<script>
+    $(document).ready(function(){
+        // 1. Lógica para esconder/mostrar campos Atípicos
+        const $cb = $("#id_atipico");
+        const $div = $("#campos-atipico");
+        
+        function toggleAtipico() {
+            if($cb.is(":checked")){
+                $div.show();
+            } else {
+                $div.hide();
+            }
+        }
+        
+        $cb.on("change", toggleAtipico);
+        toggleAtipico(); // Executa ao abrir a página
+
+        // 2. Máscara de Dinheiro (Ex: 220,00)
+        $('#id_valor_mensalidade').mask('#.##0,00', {reverse: true});
+
+        // 3. Limpeza da máscara antes de enviar para o Django
+        $('#formAluno').submit(function() {
+            var valorFormatado = $('#id_valor_mensalidade').val();
+            if (valorFormatado) {
+                // Remove pontos e troca vírgula por ponto decimal
+                var valorLimpo = valorFormatado.replace(/\./g, '').replace(',', '.');
+                $('#id_valor_mensalidade').val(valorLimpo);
+            }
+        });
+    });
+</script>
+{% endblock %}

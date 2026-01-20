@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="container mt-4">
+    <a href="{% url 'relatorio_financeiro' %}" class="btn btn-outline-secondary btn-sm mb-3">
+        ← Voltar ao Relatório
+    </a>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0 fw-bold">{{ aluno.nome }}</h2>
+                <p class="text-muted mb-0">
+                    <strong>Responsável:</strong> {{ aluno.responsavel }} 
+                    {% if aluno.telefone %} | <strong>WhatsApp:</strong> {{ aluno.telefone }}{% endif %}
+                    | <strong>Vencimento Fixo:</strong> Dia {{ aluno.dia_vencimento }}
+                </p>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'aluno_editar' aluno.id %}" class="btn btn-outline-secondary btn-sm">Editar Cadastro</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Histórico de Mensalidades</h4>
+        <a href="{% url 'gerar_mensalidades_ano' aluno.id %}" 
+           class="btn btn-sm btn-outline-primary"
+           onclick="return confirm('Deseja gerar automaticamente as mensalidades deste ano para o dia {{ aluno.dia_vencimento }}?')">
+           📅 Gerar Ano Completo
+        </a>
+    </div>
+
+    {% for mensalidade in mensalidades %}
+    <div class="card shadow-sm border-0 mb-3 border-start {% if mensalidade.em_aberto == 0 %}border-success{% elif mensalidade.vencimento < today %}border-danger{% else %}border-warning{% endif %}" style="border-width: 5px !important;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        {{ mensalidade.vencimento|date:"F / Y"|capfirst }} 
+                        <small class="text-muted">(Vence dia {{ mensalidade.vencimento|date:"d/m/Y" }})</small>
+                    </h5>
+                    <p class="mb-0">
+                        <strong>Valor:</strong> R$ {{ mensalidade.valor }} 
+                        {% if mensalidade.em_aberto > 0 %}
+                            <span class="badge bg-{% if mensalidade.vencimento < today %}danger{% else %}warning text-dark{% endif %}">
+                                Aberto: R$ {{ mensalidade.em_aberto }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success">Pago</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="text-end">
+                    {% if mensalidade.em_aberto > 0 %}
+                        <a href="{% url 'pagar_mensalidade' mensalidade.id %}" class="btn btn-primary">💰 Pagar</a>
+                    {% endif %}
+                    
+                    <a href="{% url 'excluir_mensalidade' mensalidade.id %}" 
+                       class="btn btn-sm btn-link text-danger" 
+                       onclick="return confirm('Excluir esta mensalidade?')">
+                       <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+
+            {% for pagamento in mensalidade.pagamentos.all %}
+            <div class="d-flex justify-content-between align-items-center bg-light p-2 mt-2 rounded border">
+                <small class="text-success">
+                    <i class="fas fa-check-circle"></i> 
+                    Recebido R$ {{ pagamento.valor }} em {{ pagamento.data_pagamento|date:"d/m" }} ({{ pagamento.forma }})
+                </small>
+                <a href="{{ pagamento.link_whatsapp_direto }}" target="_blank" class="btn btn-sm btn-success py-0">
+                    <i class="fab fa-whatsapp"></i> Recibo
+                </a>
+            </div>
+            {% empty %}
+                {% if mensalidade.vencimento < today %}
+                    <div class="mt-2 text-danger small">
+                        <i class="fas fa-exclamation-triangle"></i> Esta mensalidade está atrasada.
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info text-center">
+        Nenhuma mensalidade encontrada. Clique em "Gerar Ano" ou adicione uma manualmente.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

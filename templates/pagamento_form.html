@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 p-4">
+        <h2 class="mb-4">💰 Registar Pagamento</h2>
+        <p class="text-muted">Aluno: <strong>{{ mensalidade.aluno.nome }}</strong> | Vencimento: {{ mensalidade.vencimento|date:"d/m/Y" }}</p>
+        
+        <form method="post" id="formPagamento">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="id_valor" class="form-label">Valor Pago</label>
+                <input type="text" name="valor" id="id_valor" class="form-control" placeholder="0,00" value="{{ mensalidade.valor|stringformat:'.2f' }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="id_forma" class="form-label">Forma de Pagamento</label>
+                <select name="forma" id="id_forma" class="form-select">
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Pix">Pix / Transferência</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Confirmar Pagamento</button>
+                <a href="{% url 'aluno_detalhe' mensalidade.aluno.id %}" class="btn btn-link">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+<script>
+    $(document).ready(function(){
+        // Aplica a máscara de dinheiro no campo valor
+        $('#id_valor').mask('#.##0,00', {reverse: true});
+
+        // Limpa a máscara (tira os pontos e muda a vírgula para ponto) antes de enviar ao Django
+        $('#formPagamento').submit(function() {
+            var valorComMascara = $('#id_valor').val();
+            var valorLimpo = valorComMascara.replace(/\./g, '').replace(',', '.');
+            $('#id_valor').val(valorLimpo);
+        });
+    });
+</script>
+{% endblock %}

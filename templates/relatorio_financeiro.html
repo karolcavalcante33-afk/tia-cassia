@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>📊 Relatório Financeiro</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'relatorio_caixa' %}" class="btn btn-outline-primary shadow-sm">Relatório de Caixa</a>
+            <a href="{% url 'aluno_novo' %}" class="btn btn-success shadow-sm">+ Adicionar Aluno</a>
+        </div>
+    </div>
+
+    <form method="get" class="mb-3">
+        <div class="input-group shadow-sm">
+            <input type="text" name="q" class="form-control" placeholder="Buscar aluno pelo nome..." value="{{ request.GET.q }}">
+            <button class="btn btn-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+
+    {% if aniversariantes %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="display-6 me-3">🎂</div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Aniversariante(s) do Dia! 🎉</h5>
+                            <p class="mb-0">Hoje é o dia de: {% for aluno in aniversariantes %}<strong>{{ aluno.nome }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% for aluno in aniversariantes %}
+                            <a href="{{ aluno.msg_aniversario_whatsapp }}" target="_blank" class="btn btn-light btn-sm text-danger fw-bold shadow-sm">📱 Parabéns {{ aluno.nome }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if vencem_amanha %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-left: 5px solid #ffc107; background-color: #fffef0;">
+                <div class="card-body">
+                    <h6 class="fw-bold text-warning mb-3"><i class="fas fa-bell me-2"></i> Mensalidades que vencem AMANHÃ</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for mensalidade in vencem_amanha %}
+                            <a href="{{ mensalidade.link_lembrete_vencimento }}" target="_blank" class="btn btn-warning btn-sm shadow-sm fw-bold">
+                                <i class="fab fa-whatsapp me-1"></i> Lembrar {{ mensalidade.aluno.nome }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success shadow-sm mb-3 border-0 h-100">
+                <div class="card-body text-center">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.7rem;">Recebido (Mês)</small>
+                    <h4 class="mb-0 fw-bold">R$ {{ total_recebido_mes|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-white bg-primary shadow-sm mb-3 border-0 h-100">
+                <div class="card-body text-center">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.7rem;">Recebido (Ano)</small>
+                    <h4 class="mb-0 fw-bold">R$ {{ total_recebido_ano|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger shadow-sm mb-3 border-0 h-100">
+                <div class="card-body text-center">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.7rem;">Total em Atraso</small>
+                    <h4 class="mb-0 fw-bold">R$ {{ total_atrasado|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-dark bg-warning shadow-sm mb-3 border-0 h-100">
+                <div class="card-body text-center">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.7rem;">Inadimplentes</small>
+                    <h4 class="mb-0 fw-bold">{{ inadimplentes }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-white shadow-sm mb-3 border-0 h-100" style="background-color: #00bcd4;">
+                <div class="card-body text-center">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.7rem;">Atípicos 💙</small>
+                    <h4 class="mb-0 fw-bold">{{ total_atipicos }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="text-secondary fw-bold mb-3">📈 Desempenho Mensal</h5>
+                <canvas id="graficoLinha" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="text-secondary fw-bold mb-3">🍕 Formas de Pagamento (Mês)</h5>
+                <canvas id="graficoRosca" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12"><h5 class="text-secondary fw-bold mb-3">💰 Movimentação de Hoje</h5></div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-dark text-white text-center">
+                <div class="card-body">
+                    <small class="text-uppercase fw-bold" style="font-size: 0.65rem;">Total Arrecadado Hoje</small>
+                    <h3 class="mb-0 fw-bold text-warning">R$ {{ total_hoje|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-start border-info border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted fw-bold">💠 PIX Hoje</small>
+                    <h4 class="mb-0 fw-bold text-info">R$ {{ pix_hoje|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-start border-success border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted fw-bold">💵 Dinheiro Hoje</small>
+                    <h4 class="mb-0 fw-bold text-success">R$ {{ dinheiro_hoje|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-start border-primary border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <small class="text-muted fw-bold">💳 Cartão Hoje</small>
+                    <h4 class="mb-0 fw-bold text-primary">R$ {{ cartao_hoje|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3"><h5 class="mb-0 fw-bold">Alunos Cadastrados</h5></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Aluno</th><th>Responsável</th><th>Status</th><th class="text-end">Ações</th></tr>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">{{ aluno.nome }}</span>
+                            {% if aluno.atipico %}<span class="badge rounded-pill bg-info text-dark ms-2">💙 Atípico</span>{% endif %}
+                        </td>
+                        <td>{{ aluno.responsavel }}</td>
+                        <td>
+                            {% if aluno.ativo %}
+                                <span class="badge bg-success-subtle text-success border border-success">Ativo</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'aluno_detalhe' aluno.id %}" class="btn btn-sm btn-primary shadow-sm">📂 Abrir Financeiro</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de Linha
+    new Chart(document.getElementById('graficoLinha').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: {{ labels_meses|safe }},
+            datasets: [{
+                label: 'Receita R$',
+                data: {{ dados_faturamento|safe }},
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true, tension: 0.3
+            }]
+        }
+    });
+
+    // Gráfico de Rosca
+    new Chart(document.getElementById('graficoRosca').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['PIX', 'Dinheiro', 'Cartão'],
+            datasets: [{
+                data: [{{ pix_hoje }}, {{ dinheiro_hoje }}, {{ cartao_hoje }}],
+                backgroundColor: ['#0dcaf0', '#198754', '#0d6efd']
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
+</script>
+{% endblock %}

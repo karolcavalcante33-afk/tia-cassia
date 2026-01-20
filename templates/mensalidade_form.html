@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Nova Mensalidade{% endblock %}
+
+{% block conteudo %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">
+        ➕ Nova Mensalidade — {{ aluno.nome }}
+    </h2>
+
+    <form method="post" class="card p-4 shadow-sm">
+        {% csrf_token %}
+
+        <!-- ERROS GERAIS -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <!-- VALOR -->
+        <div class="mb-3">
+            <label class="form-label">Valor da mensalidade</label>
+            {{ form.valor }}
+
+            {% if form.valor.errors %}
+                <div class="text-danger small">
+                    {{ form.valor.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- VENCIMENTO -->
+        <div class="mb-3">
+            <label class="form-label">Data de vencimento</label>
+            {{ form.vencimento }}
+
+            {% if form.vencimento.errors %}
+                <div class="text-danger small">
+                    {{ form.vencimento.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                💾 Salvar mensalidade
+            </button>
+
+            <a href="{% url 'aluno_detalhe' aluno.id %}"
+               class="btn btn-outline-secondary">
+                ← Cancelar
+            </a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
