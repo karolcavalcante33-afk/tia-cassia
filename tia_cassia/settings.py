@@ -1,12 +1,13 @@
 from pathlib import Path
+import os
 
 # Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Chave de segurança (Mantenha em sigilo em produção)
+# Chave de segurança (NUNCA usar essa em produção real)
 SECRET_KEY = 'django-insecure-trocar-essa-chave'
 
-# Modo de depuração ativado para desenvolvimento
+# Produção
 DEBUG = False
 
 ALLOWED_HOSTS = ["tia-cassia.onrender.com"]
@@ -19,11 +20,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'alunos', # Seu app do projeto tia-cassia
+    'alunos',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # <-- IMPORTANTE
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,7 +53,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tia_cassia.wsgi.application'
 
-# Banco de dados SQLite
+# Banco de dados (SQLite)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -59,35 +61,36 @@ DATABASES = {
     }
 }
 
-# Configurações de Localização (Brasil)
+# Localização
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-USE_L10N = True  
+USE_L10N = True
 USE_TZ = False
 USE_THOUSAND_SEPARATOR = True
 DECIMAL_SEPARATOR = ','
 NUMBER_GROUPING = 3
 
-# Arquivos Estáticos (CSS, JS, Imagens)
+# ========================================================
+# ARQUIVOS ESTÁTICOS (CONFIGURAÇÃO CORRETA PARA RENDER)
+# ========================================================
+
 STATIC_URL = '/static/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ========================================================
-# CONFIGURAÇÕES DE AUTENTICAÇÃO E REDIRECIONAMENTO
+# AUTENTICAÇÃO
 # ========================================================
 
-# Página para onde o usuário é mandado se tentar acessar algo sem logar
 LOGIN_URL = "/login/"
-
-# MUDANÇA ESSENCIAL: Agora todos caem na lista de alunos ao logar.
-# Isso evita que a funcionária seja barrada logo no início, 
-# já que ela não tem acesso ao dashboard financeiro (/) que criamos.
-LOGIN_REDIRECT_URL = "lista_alunos" 
-
-# Página para onde o usuário vai ao sair do sistema
+LOGIN_REDIRECT_URL = "lista_alunos"
 LOGOUT_REDIRECT_URL = "/login/"
