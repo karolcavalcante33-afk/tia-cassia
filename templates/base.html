@@ -18,7 +18,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-blue shadow-sm sticky-top mb-4">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'relatorio_financeiro' %}">
+            <a class="navbar-brand d-flex align-items-center" href="{% if user.is_superuser %}{% url 'relatorio_financeiro' %}{% else %}{% url 'lista_alunos' %}{% endif %}">
                 <i class="fas fa-swimmer me-2 text-white" style="font-size: 1.8rem;"></i>
                 <div class="d-flex flex-column">
                     <span class="fw-bold lh-1 text-white">TIA CÁSSIA</span>
@@ -32,12 +32,26 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
+                    
+                    {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'relatorio_financeiro' %}">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'relatorio_caixa' %}">Caixa</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'fechamento_mensal' %}">Fechamento</a>
+                        </li>
+                    {% endif %}
+
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'relatorio_financeiro' %}">Início</a>
+                        <a class="nav-link text-white" href="{% url 'lista_alunos' %}">Alunos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'relatorio_caixa' %}">Caixa</a>
+                        <a class="nav-link text-white" href="{% url 'aluno_novo' %}">Novo Aluno</a>
                     </li>
+
                     <li class="nav-item ms-lg-3">
                         <form action="{% url 'logout' %}" method="post" class="d-inline">
                             {% csrf_token %}
