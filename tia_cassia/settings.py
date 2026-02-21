@@ -1,18 +1,19 @@
 from pathlib import Path
 import os
 
-# Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Chave de segurança (NUNCA usar essa em produção real)
 SECRET_KEY = 'django-insecure-trocar-essa-chave'
 
-# Produção
-DEBUG = True
+# PRODUÇÃO
+DEBUG = False
 
-ALLOWED_HOSTS = ["tia-cassia.onrender.com", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = [
+    "tia-cassia.onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
 
-# Aplicativos instalados
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -25,7 +26,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # <-- IMPORTANTE
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise logo após Security
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -53,7 +54,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tia_cassia.wsgi.application'
 
-# Banco de dados (SQLite)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -61,35 +61,30 @@ DATABASES = {
     }
 }
 
-# Localização
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
-USE_L10N = True
 USE_TZ = False
-USE_THOUSAND_SEPARATOR = True
-DECIMAL_SEPARATOR = ','
-NUMBER_GROUPING = 3
 
-# ========================================================
-# ARQUIVOS ESTÁTICOS (CONFIGURAÇÃO CORRETA PARA RENDER)
-# ========================================================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==============================
+# STATIC FILES (RENDER)
+# ==============================
 
 STATIC_URL = '/static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'static',
 ]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# ========================================================
-# AUTENTICAÇÃO
-# ========================================================
+# ==============================
+# AUTH
+# ==============================
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "lista_alunos"
