@@ -8,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-trocar-essa-chave'
 
 # Produção
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["tia-cassia.onrender.com"]
+ALLOWED_HOSTS = ["tia-cassia.onrender.com", "127.0.0.1", "localhost"]
 
 # Aplicativos instalados
 INSTALLED_APPS = [
@@ -83,7 +83,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
