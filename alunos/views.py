@@ -248,3 +248,31 @@ def exportar_caixa_excel(request):
     response["Content-Disposition"] = 'attachment; filename="caixa.xlsx"'
     wb.save(response)
     return response
+
+# ===============================
+# FECHAMENTO MENSAL
+# ===============================
+
+@login_required
+def fechamento_mensal(request):
+    hoje = timezone.now().date()
+
+    mes_selecionado = int(request.GET.get("mes", hoje.month))
+    ano_selecionado = int(request.GET.get("ano", hoje.year))
+
+    meses_lista = [(i, calendar.month_name[i].capitalize()) for i in range(1, 13)]
+
+    pagamentos = Pagamento.objects.filter(
+        data_pagamento__month=mes_selecionado,
+        data_pagamento__year=ano_selecionado
+    ).order_by("data_pagamento")
+
+    total_geral = pagamentos.aggregate(total=Sum("valor"))["total"] or 0
+
+    return render(request, "fechamento_mensal.html", {
+        "pagamentos": pagamentos,
+        "total_geral": total_geral,
+        "mes": mes_selecionado,
+        "ano": ano_selecionado,
+        "meses": meses_lista,
+    })
