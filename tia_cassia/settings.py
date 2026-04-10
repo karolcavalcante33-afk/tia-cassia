@@ -10,9 +10,9 @@ SECRET_KEY = 'django-insecure-trocar-essa-chave'
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
-    "tia-cassia.onrender.com",
+    "tia-cassia-1.onrender.com",
     "127.0.0.1",
-    "localhost",
+    "localhost"
 ]
 
 INSTALLED_APPS = [
