@@ -159,8 +159,10 @@ def pagar_mensalidade(request, mensalidade_id):
 # RELATÓRIO FINANCEIRO (ADMIN ONLY)
 # ===============================
 
-@staff_member_required
+@login_required
 def relatorio_financeiro(request):
+    if not request.user.is_staff:
+        return redirect('lista_alunos')
     hoje = timezone.now().date()
     busca = request.GET.get("q", "")
 
