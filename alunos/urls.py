@@ -25,7 +25,7 @@ urlpatterns = [
 
     # CAIXA (Relatórios e Exportação)
     # Rotas restritas ao grupo ADMIN para proteger o faturamento total
-    path("caixa/", views.relatorio_caixa, name="relatorio_caixa"),
+    path("", views.relatorio_caixa, name="relatorio_caixa"),
     path("caixa/fechamento/", views.fechamento_mensal, name="fechamento_mensal"),
     path("caixa/exportar/", views.exportar_caixa_excel, name="exportar_caixa_excel"),
 ]
