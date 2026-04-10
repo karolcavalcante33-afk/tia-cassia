@@ -207,13 +207,13 @@ def relatorio_caixa(request):
     ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
     return render(request, "relatorio_financeiro.html", {
-        "total_recebido_mes": total_mes,
-        "total_recebido_ano": total_ano,
-        "total_hoje": total_hoje,
-        "today": hoje,
-        "aniversariantes": aniversariantes,
-        "mensalidades_vencendo": mensalidades_vencendo,
-    })
+    "total_recebido_mes": total_mes,
+    "total_recebido_ano": total_ano,
+    "total_hoje": total_hoje,
+    "today": hoje,
+    "aniversariantes": aniversariantes,
+    "mensalidades_vencendo": mensalidades_vencendo,
+})
     
 # ===============================
 # CORREÇÃO DE ROTA (IMPORTANTE)
