@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.db.models import Sum, Value, DecimalField
 from django.db.models.functions import ExtractMonth, Coalesce
@@ -155,21 +156,18 @@ def pagar_mensalidade(request, mensalidade_id):
 
 
 # ===============================
-# RELATÓRIO FINANCEIRO
+# RELATÓRIO FINANCEIRO (ADMIN ONLY)
 # ===============================
 
-@login_required
+@staff_member_required
 def relatorio_financeiro(request):
     hoje = timezone.now().date()
     busca = request.GET.get("q", "")
 
     from datetime import timedelta
 
-    # =====================================
-    # 🎂 ANIVERSARIANTES DA SEMANA
-    # =====================================
+    # 🎂 ANIVERSARIANTES
     fim_semana = hoje + timedelta(days=7)
-
     aniversariantes = []
 
     for aluno in Aluno.objects.all():
@@ -191,11 +189,8 @@ def relatorio_financeiro(request):
         )
     )
 
-    # =====================================
-    # 💰 MENSALIDADES VENCENDO (CORRETO)
-    # =====================================
+    # 💰 MENSALIDADES
     amanha = hoje + timedelta(days=1)
-
     mensalidades_vencendo = []
 
     for aluno in Aluno.objects.all():
@@ -203,63 +198,44 @@ def relatorio_financeiro(request):
             if aluno.dia_vencimento == hoje.day:
                 aluno.vencimento_tipo = "hoje"
                 mensalidades_vencendo.append(aluno)
-
-            elif aluno.dia_vencimento == (hoje + timedelta(days=1)).day:
+            elif aluno.dia_vencimento == amanha.day:
                 aluno.vencimento_tipo = "amanha"
                 mensalidades_vencendo.append(aluno)
 
-    # =====================================
-    # 🔍 BUSCA DE ALUNOS
-    # =====================================
+    # 🔍 BUSCA
     alunos = (
         Aluno.objects.filter(nome__icontains=busca).order_by("nome")
         if busca else
         Aluno.objects.all().order_by("nome")
     )
 
-    # =====================================
     # 💵 TOTAIS
-    # =====================================
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
-    ).aggregate(
-        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
-    )["total"]
+    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
     total_ano = Pagamento.objects.filter(
         data_pagamento__year=hoje.year
-    ).aggregate(
-        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
-    )["total"]
+    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
     total_hoje = Pagamento.objects.filter(
         data_pagamento=hoje
-    ).aggregate(
-        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
-    )["total"]
+    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
-    # =====================================
     # 📊 GRÁFICO
-    # =====================================
     dados = (
         Pagamento.objects
         .filter(data_pagamento__year=hoje.year)
         .annotate(mes=ExtractMonth("data_pagamento"))
         .values("mes")
-        .annotate(
-            total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
-        )
+        .annotate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))
     )
 
     grafico_meses = [0] * 12
-
     for item in dados:
         grafico_meses[item["mes"] - 1] = float(item["total"])
 
-    # =====================================
-    # 🚀 RENDER
-    # =====================================
     return render(request, "relatorio_financeiro.html", {
         "alunos": alunos,
         "total_recebido_mes": total_mes,
@@ -269,75 +245,4 @@ def relatorio_financeiro(request):
         "today": hoje,
         "aniversariantes": aniversariantes,
         "mensalidades_vencendo": mensalidades_vencendo,
-    })
-
-# ===============================
-# CAIXA
-# ===============================
-
-@login_required
-def relatorio_caixa(request):
-    pagamentos = Pagamento.objects.all().order_by("-data_pagamento")
-
-    total = pagamentos.aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
-
-    return render(request, "relatorio_caixa.html", {
-        "pagamentos": pagamentos,
-        "total_caixa": total
-    })
-
-
-# ===============================
-# EXPORTAR EXCEL
-# ===============================
-
-@login_required
-def exportar_caixa_excel(request):
-    pagamentos = Pagamento.objects.all()
-
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["Aluno", "Valor", "Forma", "Data"])
-
-    for p in pagamentos:
-        ws.append([
-            p.mensalidade.aluno.nome,
-            float(p.valor),
-            p.forma,
-            p.data_pagamento.strftime("%d/%m/%Y")
-        ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    response["Content-Disposition"] = 'attachment; filename="caixa.xlsx"'
-    wb.save(response)
-    return response
-
-# ===============================
-# FECHAMENTO MENSAL
-# ===============================
-
-@login_required
-def fechamento_mensal(request):
-    hoje = timezone.now().date()
-
-    mes_selecionado = int(request.GET.get("mes", hoje.month))
-    ano_selecionado = int(request.GET.get("ano", hoje.year))
-
-    meses_lista = [(i, calendar.month_name[i].capitalize()) for i in range(1, 13)]
-
-    pagamentos = Pagamento.objects.filter(
-        data_pagamento__month=mes_selecionado,
-        data_pagamento__year=ano_selecionado
-    ).order_by("data_pagamento")
-
-    total_geral = pagamentos.aggregate(total=Sum("valor"))["total"] or 0
-
-    return render(request, "fechamento_mensal.html", {
-        "pagamentos": pagamentos,
-        "total_geral": total_geral,
-        "mes": mes_selecionado,
-        "ano": ano_selecionado,
-        "meses": meses_lista,
     })
