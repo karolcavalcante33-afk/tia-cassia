@@ -224,3 +224,7 @@ def relatorio_financeiro(request):
 @login_required
 def fechamento_mensal(request):
     return relatorio_caixa(request)
+
+@login_required
+def exportar_caixa_excel(request):
+    return HttpResponse("Exportação ainda não implementada")
