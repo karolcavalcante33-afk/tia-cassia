@@ -156,15 +156,13 @@ def pagar_mensalidade(request, mensalidade_id):
 
 
 # ===============================
-# RELATÓRIO FINANCEIRO (ADMIN ONLY)
+# RELATÓRIO FINANCEIRO
 # ===============================
 
 @login_required
 def relatorio_caixa(request):
     hoje = timezone.now().date()
-    busca = request.GET.get("q", "")
 
-    # 🎂 ANIVERSARIANTES
     fim_semana = hoje + timedelta(days=7)
     aniversariantes = []
 
@@ -179,7 +177,6 @@ def relatorio_caixa(request):
                 )
                 aniversariantes.append(aluno)
 
-    # 💰 MENSALIDADES
     amanha = hoje + timedelta(days=1)
     mensalidades_vencendo = []
 
@@ -192,7 +189,6 @@ def relatorio_caixa(request):
                 aluno.vencimento_tipo = "amanha"
                 mensalidades_vencendo.append(aluno)
 
-    # 💵 TOTAIS
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
@@ -207,18 +203,24 @@ def relatorio_caixa(request):
     ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
     return render(request, "relatorio_financeiro.html", {
-    "total_recebido_mes": total_mes,
-    "total_recebido_ano": total_ano,
-    "total_hoje": total_hoje,
-    "today": hoje,
-    "aniversariantes": aniversariantes,
-    "mensalidades_vencendo": mensalidades_vencendo,
-})
-    
+        "total_recebido_mes": total_mes,
+        "total_recebido_ano": total_ano,
+        "total_hoje": total_hoje,
+        "today": hoje,
+        "aniversariantes": aniversariantes,
+        "mensalidades_vencendo": mensalidades_vencendo,
+    })
+
+
 # ===============================
-# CORREÇÃO DE ROTA (IMPORTANTE)
+# ROTAS AUXILIARES (CORREÇÃO)
 # ===============================
 
 @login_required
 def relatorio_financeiro(request):
+    return relatorio_caixa(request)
+
+
+@login_required
+def fechamento_mensal(request):
     return relatorio_caixa(request)
