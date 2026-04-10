@@ -214,3 +214,11 @@ def relatorio_caixa(request):
         "aniversariantes": aniversariantes,
         "mensalidades_vencendo": mensalidades_vencendo,
     })
+    
+# ===============================
+# CORREÇÃO DE ROTA (IMPORTANTE)
+# ===============================
+
+@login_required
+def relatorio_financeiro(request):
+    return relatorio_caixa(request)
