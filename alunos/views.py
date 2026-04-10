@@ -160,9 +160,7 @@ def pagar_mensalidade(request, mensalidade_id):
 # ===============================
 
 @login_required
-def relatorio_financeiro(request):
-    return render(request, "relatorio_financeiro.html")
-        return redirect('lista_alunos')
+def relatorio_caixa(request):
     hoje = timezone.now().date()
     busca = request.GET.get("q", "")
 
