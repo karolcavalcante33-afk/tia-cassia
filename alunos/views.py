@@ -8,7 +8,7 @@ from django.db.models import Sum, Value, DecimalField
 from django.db.models.functions import ExtractMonth, Coalesce
 
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta  
 import calendar
 from openpyxl import Workbook
 
@@ -164,9 +164,7 @@ def relatorio_caixa(request):
     hoje = timezone.now().date()
     busca = request.GET.get("q", "")
 
-    from datetime import timedelta
-
-    # ANIVERSARIANTES
+    # 🎂 ANIVERSARIANTES
     fim_semana = hoje + timedelta(days=7)
     aniversariantes = []
 
@@ -181,7 +179,7 @@ def relatorio_caixa(request):
                 )
                 aniversariantes.append(aluno)
 
-    # MENSALIDADES
+    # 💰 MENSALIDADES
     amanha = hoje + timedelta(days=1)
     mensalidades_vencendo = []
 
@@ -194,7 +192,7 @@ def relatorio_caixa(request):
                 aluno.vencimento_tipo = "amanha"
                 mensalidades_vencendo.append(aluno)
 
-    # TOTAIS
+    # 💵 TOTAIS
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
