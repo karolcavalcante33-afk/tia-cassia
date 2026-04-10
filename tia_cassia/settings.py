@@ -6,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-trocar-essa-chave'
 
-# PRODUÇÃO
-DEBUG = False
+# DEBUG: local True, produção False
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
     "tia-cassia.onrender.com",
@@ -27,7 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise logo após Security
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,13 +54,27 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'tia_cassia.wsgi.application'
+
+# ==============================
+# DATABASE (FUNCIONA LOCAL E RENDER)
+# ==============================
+
 DATABASES = {
     'default': dj_database_url.config(
-        # Se não houver DATABASE_URL (no seu PC), ele usa o SQLite local
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
         conn_max_age=600
     )
 }
+
+# força SSL quando usar PostgreSQL (Render)
+if "DATABASE_URL" in os.environ:
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+
+# ==============================
+# INTERNACIONALIZAÇÃO
+# ==============================
 
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
@@ -74,7 +88,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==============================
 
 STATIC_URL = '/static/'
-
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [

@@ -163,39 +163,103 @@ def relatorio_financeiro(request):
     hoje = timezone.now().date()
     busca = request.GET.get("q", "")
 
+    from datetime import timedelta
+
+    # =====================================
+    # 🎂 ANIVERSARIANTES DA SEMANA
+    # =====================================
+    fim_semana = hoje + timedelta(days=7)
+
+    aniversariantes = []
+
+    for aluno in Aluno.objects.all():
+        if aluno.data_nascimento:
+            aniversario_esse_ano = aluno.data_nascimento.replace(year=hoje.year)
+
+            if hoje <= aniversario_esse_ano <= fim_semana:
+                aluno.e_hoje = (
+                    aluno.data_nascimento.day == hoje.day and
+                    aluno.data_nascimento.month == hoje.month
+                )
+                aniversariantes.append(aluno)
+
+    aniversariantes = sorted(
+        aniversariantes,
+        key=lambda a: (
+            not getattr(a, "e_hoje", False),
+            a.data_nascimento.day
+        )
+    )
+
+    # =====================================
+    # 💰 MENSALIDADES VENCENDO (CORRETO)
+    # =====================================
+    amanha = hoje + timedelta(days=1)
+
+    mensalidades_vencendo = []
+
+    for aluno in Aluno.objects.all():
+        if aluno.dia_vencimento:
+            if aluno.dia_vencimento == hoje.day:
+                aluno.vencimento_tipo = "hoje"
+                mensalidades_vencendo.append(aluno)
+
+            elif aluno.dia_vencimento == (hoje + timedelta(days=1)).day:
+                aluno.vencimento_tipo = "amanha"
+                mensalidades_vencendo.append(aluno)
+
+    # =====================================
+    # 🔍 BUSCA DE ALUNOS
+    # =====================================
     alunos = (
         Aluno.objects.filter(nome__icontains=busca).order_by("nome")
         if busca else
         Aluno.objects.all().order_by("nome")
     )
 
-    # Totais blindados contra None
+    # =====================================
+    # 💵 TOTAIS
+    # =====================================
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
+    )["total"]
 
     total_ano = Pagamento.objects.filter(
         data_pagamento__year=hoje.year
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
+    )["total"]
 
     total_hoje = Pagamento.objects.filter(
         data_pagamento=hoje
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
+    )["total"]
 
-    # Gráfico meses
+    # =====================================
+    # 📊 GRÁFICO
+    # =====================================
     dados = (
         Pagamento.objects
         .filter(data_pagamento__year=hoje.year)
         .annotate(mes=ExtractMonth("data_pagamento"))
         .values("mes")
-        .annotate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))
+        .annotate(
+            total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField())
+        )
     )
 
     grafico_meses = [0] * 12
+
     for item in dados:
         grafico_meses[item["mes"] - 1] = float(item["total"])
 
+    # =====================================
+    # 🚀 RENDER
+    # =====================================
     return render(request, "relatorio_financeiro.html", {
         "alunos": alunos,
         "total_recebido_mes": total_mes,
@@ -203,8 +267,9 @@ def relatorio_financeiro(request):
         "total_hoje": total_hoje,
         "grafico_meses": grafico_meses,
         "today": hoje,
+        "aniversariantes": aniversariantes,
+        "mensalidades_vencendo": mensalidades_vencendo,
     })
-
 
 # ===============================
 # CAIXA
