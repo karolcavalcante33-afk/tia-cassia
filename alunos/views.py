@@ -166,7 +166,6 @@ def relatorio_caixa(request):
 
     from datetime import timedelta
 
-    # 🎂 ANIVERSARIANTES
     fim_semana = hoje + timedelta(days=7)
     aniversariantes = []
 
@@ -189,7 +188,6 @@ def relatorio_caixa(request):
         )
     )
 
-    # 💰 MENSALIDADES
     amanha = hoje + timedelta(days=1)
     mensalidades_vencendo = []
 
@@ -202,14 +200,12 @@ def relatorio_caixa(request):
                 aluno.vencimento_tipo = "amanha"
                 mensalidades_vencendo.append(aluno)
 
-    # 🔍 BUSCA
     alunos = (
         Aluno.objects.filter(nome__icontains=busca).order_by("nome")
         if busca else
         Aluno.objects.all().order_by("nome")
     )
 
-    # 💵 TOTAIS
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
@@ -223,7 +219,6 @@ def relatorio_caixa(request):
         data_pagamento=hoje
     ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
 
-    # 📊 GRÁFICO
     dados = (
         Pagamento.objects
         .filter(data_pagamento__year=hoje.year)
