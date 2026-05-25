@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from django.core.validators import MinValueValidator, MaxValueValidator
 import urllib.parse
+from urllib.parse import quote
 
 
 # ==================================================
@@ -63,15 +64,17 @@ class Aluno(models.Model):
 
         return f"https://wa.me/{fone_limpo}?text={msg}"
 
-    # -----------------------------------------------
+      # -----------------------------------------------
     # Link de aniversário
     # -----------------------------------------------
+    @property
     def msg_aniversario_whatsapp(self):
         texto = (
-            f"Olá {self.nome}! 🎉\n\n"
-            "A Tia Cássia e toda a equipe do Studio desejam um feliz aniversário! 🎂✨\n\n"
-            "Muita saúde e ótimas braçadas na natação! 🏊‍♂️🎉"
+            f"Ola {self.nome}!\n\n"
+            "A Tia Cassia e toda a equipe do Studio desejam um feliz aniversario!\n\n"
+            "Muita saude e otimas bracadas na natacao."
         )
+
         return self._gerar_link_whatsapp(texto)
 
     # -----------------------------------------------

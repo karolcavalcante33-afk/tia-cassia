@@ -7,6 +7,8 @@
     Relatório Financeiro
 </h2>
 
+{% if user.is_superuser %}
+
 <p class="text-muted mb-3">
     Resumo financeiro atualizado em {{ today|date:"d/m/Y" }}
 </p>
@@ -88,6 +90,8 @@
         <canvas id="graficoReceita" height="100"></canvas>
     </div>
 </div>
+
+{% endif %}
 
 <!-- 🎂 ANIVERSARIANTES -->
 <div class="card shadow rounded-4 border-0 mb-4 bg-light border-start border-4 border-warning">
@@ -175,7 +179,7 @@
 
                     <div class="d-flex gap-2">
 
-                        <a href="https://wa.me/55{{ m.telefone }}?text=Olá {{ m.nome }}, tudo bem? 😊%0ASua mensalidade vence {{ m.vencimento_tipo }}.%0APor favor, não esqueça do pagamento 💰"
+                        <a href="https://wa.me/55{{ m.telefone }}?text=Ola%20{{ m.nome }}!%0A%0ASua%20mensalidade%20esta%20vencendo.%20😊"
                            target="_blank"
                            class="btn btn-sm btn-success">
                             Cobrar

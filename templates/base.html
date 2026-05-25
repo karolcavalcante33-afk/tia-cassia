@@ -18,7 +18,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-blue shadow-sm sticky-top mb-4">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% if user.is_superuser %}{% url 'relatorio_financeiro' %}{% else %}{% url 'lista_alunos' %}{% endif %}">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'lista_alunos' %}">
                 <i class="fas fa-swimmer me-2 text-white" style="font-size: 1.8rem;"></i>
                 <div class="d-flex flex-column">
                     <span class="fw-bold lh-1 text-white">TIA CÁSSIA</span>
@@ -46,7 +46,11 @@
                     {% endif %}
 
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'lista_alunos' %}">Alunos</a>
+                        {% if user.is_superuser %}
+    <a class="nav-link text-white" href="{% url 'lista_alunos' %}">Alunos</a>
+{% else %}
+    <a class="nav-link text-white" href="{% url 'relatorio_financeiro' %}">Painel</a>
+{% endif %}
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'aluno_novo' %}">Novo Aluno</a>

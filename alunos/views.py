@@ -161,46 +161,96 @@ def pagar_mensalidade(request, mensalidade_id):
 
 @login_required
 def relatorio_caixa(request):
+
     hoje = timezone.now().date()
 
+    # ===============================
+    # 🎂 ANIVERSARIANTES
+    # ===============================
     fim_semana = hoje + timedelta(days=7)
+
     aniversariantes = []
 
-    for aluno in Aluno.objects.all():
+    for aluno in Aluno.objects.filter(ativo=True):
+
         if aluno.data_nascimento:
+
             aniversario_esse_ano = aluno.data_nascimento.replace(year=hoje.year)
 
             if hoje <= aniversario_esse_ano <= fim_semana:
+
                 aluno.e_hoje = (
                     aluno.data_nascimento.day == hoje.day and
                     aluno.data_nascimento.month == hoje.month
                 )
+
                 aniversariantes.append(aluno)
 
+    # ===============================
+    # 💰 MENSALIDADES VENCENDO
+    # ===============================
     amanha = hoje + timedelta(days=1)
+
     mensalidades_vencendo = []
 
-    for aluno in Aluno.objects.all():
+    for aluno in Aluno.objects.filter(ativo=True):
+
         if aluno.dia_vencimento:
+
             if aluno.dia_vencimento == hoje.day:
+
                 aluno.vencimento_tipo = "hoje"
                 mensalidades_vencendo.append(aluno)
+
             elif aluno.dia_vencimento == amanha.day:
+
                 aluno.vencimento_tipo = "amanha"
                 mensalidades_vencendo.append(aluno)
 
+    # ===============================
+    # 👩‍💼 FUNCIONÁRIO
+    # ===============================
+    if not request.user.is_superuser:
+
+        return render(request, "funcionario_dashboard.html", {
+            "aniversariantes": aniversariantes,
+            "mensalidades_vencendo": mensalidades_vencendo,
+            "alunos": Aluno.objects.filter(ativo=True).order_by("nome"),
+        })
+
+    # ===============================
+    # 👑 ADMIN
+    # ===============================
     total_mes = Pagamento.objects.filter(
         data_pagamento__month=hoje.month,
         data_pagamento__year=hoje.year
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(
+            Sum("valor"),
+            Value(0),
+            output_field=DecimalField()
+        )
+    )["total"]
 
     total_ano = Pagamento.objects.filter(
         data_pagamento__year=hoje.year
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(
+            Sum("valor"),
+            Value(0),
+            output_field=DecimalField()
+        )
+    )["total"]
 
     total_hoje = Pagamento.objects.filter(
         data_pagamento=hoje
-    ).aggregate(total=Coalesce(Sum("valor"), Value(0), output_field=DecimalField()))["total"]
+    ).aggregate(
+        total=Coalesce(
+            Sum("valor"),
+            Value(0),
+            output_field=DecimalField()
+        )
+    )["total"]
 
     return render(request, "relatorio_financeiro.html", {
         "total_recebido_mes": total_mes,
@@ -213,7 +263,7 @@ def relatorio_caixa(request):
 
 
 # ===============================
-# ROTAS AUXILIARES (CORREÇÃO)
+# ROTAS AUXILIARES
 # ===============================
 
 @login_required
@@ -223,8 +273,22 @@ def relatorio_financeiro(request):
 
 @login_required
 def fechamento_mensal(request):
-    return relatorio_caixa(request)
+
+    if request.user.is_superuser:
+        return relatorio_caixa(request)
+
+    return dashboard_funcionario(request)
+
 
 @login_required
 def exportar_caixa_excel(request):
     return HttpResponse("Exportação ainda não implementada")
+
+
+# ===============================
+# DASHBOARD FUNCIONÁRIO
+# ===============================
+
+@login_required
+def dashboard_funcionario(request):
+    return relatorio_caixa(request)
