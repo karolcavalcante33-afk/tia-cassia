@@ -219,7 +219,7 @@ def relatorio_caixa(request):
             "alunos": Aluno.objects.filter(ativo=True).order_by("nome"),
         })
 
-    # ===============================
+       # ===============================
     # 👑 ADMIN
     # ===============================
     total_mes = Pagamento.objects.filter(
@@ -253,6 +253,14 @@ def relatorio_caixa(request):
         )
     )["total"]
 
+    grafico_meses = [0] * 12
+
+    for pagamento in Pagamento.objects.filter(
+        data_pagamento__year=hoje.year
+    ):
+        mes = pagamento.data_pagamento.month - 1
+        grafico_meses[mes] += float(pagamento.valor)
+
     return render(request, "relatorio_financeiro.html", {
         "total_recebido_mes": total_mes,
         "total_recebido_ano": total_ano,
@@ -260,9 +268,8 @@ def relatorio_caixa(request):
         "today": hoje,
         "aniversariantes": aniversariantes,
         "mensalidades_vencendo": mensalidades_vencendo,
+        "grafico_meses": grafico_meses,
     })
-
-
 # ===============================
 # ROTAS AUXILIARES
 # ===============================
