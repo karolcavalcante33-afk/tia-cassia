@@ -12,7 +12,8 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = [
     "tia-cassia-1.onrender.com",
     "127.0.0.1",
-    "localhost"
+    "localhost",
+    "2.25.154.123"
 ]
 
 INSTALLED_APPS = [
