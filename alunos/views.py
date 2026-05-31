@@ -11,6 +11,7 @@ from decimal import Decimal
 from datetime import date, timedelta  
 import calendar
 from openpyxl import Workbook
+from reportlab.pdfgen import canvas
 
 from .models import Aluno, Mensalidade, Pagamento
 from .forms import AlunoForm, MensalidadeForm, PagamentoForm
@@ -316,6 +317,47 @@ def exportar_caixa_excel(request):
 
     return response
 
+
+@login_required
+def exportar_caixa_pdf(request):
+
+    response = HttpResponse(content_type='application/pdf')
+
+    response['Content-Disposition'] = (
+        'attachment; filename="fluxo_caixa.pdf"'
+    )
+
+    pdf = canvas.Canvas(response)
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(50, 800, "Relatório Financeiro")
+
+    pdf.setFont("Helvetica", 12)
+
+    y = 760
+
+    pagamentos = Pagamento.objects.all().order_by("-data_pagamento")
+
+    for p in pagamentos:
+
+        linha = (
+            f"{p.data_pagamento.strftime('%d/%m/%Y')} | "
+            f"{p.mensalidade.aluno.nome} | "
+            f"{p.forma} | "
+            f"R$ {p.valor}"
+        )
+
+        pdf.drawString(50, y, linha)
+
+        y -= 20
+
+        if y < 50:
+            pdf.showPage()
+            y = 800
+
+    pdf.save()
+
+    return response
 
 # ===============================
 # DASHBOARD FUNCIONÁRIO
