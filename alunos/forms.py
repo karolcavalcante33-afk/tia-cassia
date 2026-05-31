@@ -20,6 +20,7 @@ class AlunoForm(forms.ModelForm):
 
     class Meta:
         model = Aluno
+
         fields = [
             "nome",
             "responsavel",
@@ -29,22 +30,52 @@ class AlunoForm(forms.ModelForm):
             "data_nascimento",
             "atipico",
             "tipo_atipico",
+            "dia_aula",
+            "horario_aula",
             "observacoes",
             "ativo"
         ]
+
         widgets = {
             "nome": forms.TextInput(attrs={"class": "form-control"}),
             "responsavel": forms.TextInput(attrs={"class": "form-control"}),
             "telefone": forms.TextInput(attrs={"class": "form-control"}),
             "dia_vencimento": forms.NumberInput(attrs={"class": "form-control"}),
+
             "data_nascimento": forms.DateInput(
-                attrs={"class": "form-control", "type": "date"},
+                attrs={
+                    "class": "form-control",
+                    "type": "date"
+                },
                 format="%Y-%m-%d"
             ),
-            "atipico": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "tipo_atipico": forms.TextInput(attrs={"class": "form-control"}),
-            "observacoes": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
-            "ativo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+
+            "atipico": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+
+            "tipo_atipico": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+
+            "dia_aula": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+
+            "horario_aula": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+
+            "observacoes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3
+                }
+            ),
+
+            "ativo": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
         }
 
     def clean_valor_mensalidade(self):

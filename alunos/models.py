@@ -24,9 +24,31 @@ class Aluno(models.Model):
     data_nascimento = models.DateField(null=True, blank=True)
 
     atipico = models.BooleanField(default=False)
-    tipo_atipico = models.CharField("Condição", max_length=100, blank=True, null=True)
+    tipo_atipico = models.CharField(
+        "Condição",
+        max_length=100,
+        blank=True,
+        null=True
+    )
 
     observacoes = models.TextField(blank=True, null=True)
+
+    dia_aula = models.CharField(
+        "Dias de Aula",
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Ex: Segunda e Quarta"
+    )
+
+    horario_aula = models.CharField(
+        "Horário",
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Ex: 15:00 às 16:00"
+    )
+
     ativo = models.BooleanField(default=True)
 
     valor_mensalidade = models.DecimalField(
@@ -55,14 +77,34 @@ class Aluno(models.Model):
 
         msg = urllib.parse.quote(texto)
 
-        # remove tudo que não for número
         fone_limpo = "".join(filter(str.isdigit, self.telefone))
 
-        # adiciona código do Brasil se necessário
         if not fone_limpo.startswith("55"):
             fone_limpo = f"55{fone_limpo}"
 
         return f"https://wa.me/{fone_limpo}?text={msg}"
+
+    @property
+    def msg_aniversario_whatsapp(self):
+        texto = (
+            f"Ola {self.nome}!\n\n"
+            "A Tia Cassia e toda a equipe do Studio desejam um feliz aniversario!\n\n"
+            "Muita saude e otimas bracadas na natacao."
+        )
+
+        return self._gerar_link_whatsapp(texto)
+
+    @property
+    def e_aniversario(self):
+        if not self.data_nascimento:
+            return False
+
+        hoje = timezone.now().date()
+
+        return (
+            self.data_nascimento.day == hoje.day and
+            self.data_nascimento.month == hoje.month
+        )
 
       # -----------------------------------------------
     # Link de aniversário
