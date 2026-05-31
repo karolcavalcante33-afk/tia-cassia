@@ -282,7 +282,39 @@ def fechamento_mensal(request):
 
 @login_required
 def exportar_caixa_excel(request):
-    return HttpResponse("Exportação ainda não implementada")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Fluxo de Caixa"
+
+    ws.append([
+        "Data",
+        "Aluno",
+        "Forma de Pagamento",
+        "Valor"
+    ])
+
+    pagamentos = Pagamento.objects.all().order_by("-data_pagamento")
+
+    for p in pagamentos:
+        ws.append([
+            p.data_pagamento.strftime("%d/%m/%Y"),
+            p.mensalidade.aluno.nome,
+            p.forma,
+            float(p.valor)
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="fluxo_caixa.xlsx"'
+    )
+
+    wb.save(response)
+
+    return response
 
 
 # ===============================
